@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Type Racer — Speed Rush</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- animated racing backdrop (menu + race share this canvas) -->
+  <div id="track-wrap">
+    <canvas id="track-canvas"></canvas>
+  </div>
+  <div class="scanlines"></div>
+
+  <!-- hidden input that summons the soft keyboard on mobile -->
+  <input id="mobile-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+
+  <!-- toasts -->
+  <div id="toast-box"></div>
+
+  <!-- ================= HOME ================= -->
+  <div class="screen active" id="screen-home">
+    <h1 class="game-title"><span class="t1">TYPE RACER</span><br /><span class="t2">SPEED RUSH</span></h1>
+    <div class="game-sub">Your fingers. Your engine.</div>
+
+    <div class="menu">
+      <button class="btn primary" id="btn-start">Start Race</button>
+      <button class="btn" id="btn-practice">Practice Mode</button>
+      <button class="btn" id="btn-daily">Daily Challenge</button>
+      <button class="btn" id="btn-multiplayer">Multiplayer</button>
+      <button class="btn" id="btn-leaderboard">Leaderboard</button>
+      <button class="btn" id="btn-settings">Settings</button>
+      <button class="btn" id="btn-achievements">Achievements</button>
+    </div>
+
+    <div class="daily-strip"><span>&#128197; Daily Challenge</span><span id="daily-label">Ready for today</span></div>
+    <div class="hint">Start typing at GO &mdash; every key is fuel. SPACE releases nitro.</div>
+  </div>
+
+  <!-- ================= GAME ================= -->
+  <div class="screen" id="screen-game">
+    <div class="track-area">
+      <!-- top HUD -->
+      <div class="hud-top">
+        <div class="hud-chip">
+          <span class="label">Time</span>
+          <span class="value neon" id="hud-time">0:00.0</span>
+        </div>
+        <div class="hud-right-group">
+          <div class="hud-chip">
+            <span class="label">Position</span>
+            <span class="value" id="hud-position">#1</span>
+          </div>
+          <div class="hud-chip">
+            <span class="label">Mode</span>
+            <span class="value" id="hud-mode">RACE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- speedometer -->
+      <div class="speedo">
+        <div class="speedo-ring" id="speedo-ring"></div>
+        <div class="speedo-inner">
+          <span class="speedo-value" id="speedo-value">60</span>
+          <span class="speedo-unit">KM/H</span>
+        </div>
+        <div class="speedo-needle" id="speedo-needle"></div>
+        <div class="speedo-center"></div>
+      </div>
+
+      <!-- stats -->
+      <div class="hud-stats">
+        <div class="stat"><span class="label">WPM</span><span class="value" id="hud-wpm">0</span></div>
+        <div class="stat"><span class="label">Accuracy</span><span class="value" id="hud-acc">100%</span></div>
+        <div class="stat"><span class="label">Mistakes</span><span class="value" id="hud-mistakes">0</span></div>
+        <div class="combo-box" id="combo-box">
+          <div class="label">Combo</div>
+          <div class="value" id="hud-combo">x0</div>
+        </div>
+      </div>
+
+      <!-- countdown -->
+      <div class="countdown"><span class="num" id="countdown">3</span></div>
+    </div>
+
+    <!-- typing panel -->
+    <div class="typing-panel" id="typing-panel">
+      <div class="meter-row">
+        <span class="progress-label">TRACK</span>
+        <div class="progress-track"><div class="progress-fill" id="hud-progress"></div></div>
+        <div class="nitro-box" id="nitro-box"><div class="nitro-fill" id="nitro-fill"></div></div>
+        <span class="nitro-hint" id="nitro-hint">PRESS SPACE</span>
+      </div>
+      <div class="typing-text" id="typing-text"></div>
+    </div>
+  </div>
+
+  <!-- ================= RESULTS ================= -->
+  <div class="screen" id="screen-results">
+    <canvas id="fx-canvas"></canvas>
+    <h2 class="results-title win" id="res-title">FINISH</h2>
+    <div class="res-position" id="res-position">#1</div>
+    <div class="results-grid">
+      <div class="res-card"><div class="label">Final Time</div><div class="value" id="res-time">0.0s</div></div>
+      <div class="res-card"><div class="label">Highest Speed</div><div class="value" id="res-top">0</div></div>
+      <div class="res-card"><div class="label">Average Speed</div><div class="value" id="res-avg">0</div></div>
+      <div class="res-card"><div class="label">WPM</div><div class="value" id="res-wpm">0</div></div>
+      <div class="res-card"><div class="label">Accuracy</div><div class="value" id="res-acc">0%</div></div>
+      <div class="res-card"><div class="label">Mistakes</div><div class="value" id="res-mistakes">0</div></div>
+      <div class="res-card"><div class="label">Combo Record</div><div class="value" id="res-combo">x0</div></div>
+      <div class="res-card"><div class="label">Mode</div><div class="value" id="res-mode">Race</div></div>
+    </div>
+    <div class="res-name-row">
+      <input id="res-name" maxlength="16" placeholder="Driver name" />
+    </div>
+    <div class="res-actions">
+      <button class="btn primary" id="btn-play-again">Play Again</button>
+      <button class="btn" id="btn-home">Home</button>
+      <button class="btn" id="btn-lb">Leaderboard</button>
+    </div>
+    <div class="res-online hidden" id="res-online">
+      <h3>Online Standings</h3>
+      <table class="lb">
+        <thead>
+          <tr>
+            <th></th><th>Driver</th><th>Time</th><th>WPM</th><th>Accuracy</th>
+          </tr>
+        </thead>
+        <tbody id="res-online-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= MULTIPLAYER ================= -->
+  <div class="screen" id="screen-multiplayer">
+    <div class="panel mp-panel">
+      <h2>Online Race</h2>
+      <div class="mp-status" id="mp-status">Connecting…</div>
+      <div class="mp-actions">
+        <button class="btn primary" id="mp-create">Create Room</button>
+        <div class="mp-join-row">
+          <input id="mp-code" class="mp-code" maxlength="4" placeholder="CODE" autocomplete="off" />
+          <button class="btn" id="mp-join">Join</button>
+        </div>
+      </div>
+      <div class="mp-players-box">
+        <div class="mp-players-title">Room <span id="mp-room-code"></span></div>
+        <div id="mp-player-list" class="mp-player-list"></div>
+      </div>
+      <div class="mp-note" id="mp-note">Share the room code with friends — they join from any PC.</div>
+      <div class="mp-actions-bottom">
+        <button class="btn primary hidden" id="mp-start">Start Race</button>
+        <button class="btn" id="mp-back">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= LEADERBOARD ================= -->
+  <div class="screen" id="screen-leaderboard">
+    <div class="panel">
+      <h2>Leaderboard</h2>
+      <div class="panel-box">
+        <table class="lb">
+          <thead>
+            <tr>
+              <th></th><th>Driver</th><th>WPM</th><th>Accuracy</th><th>Time</th><th>Top Speed</th>
+            </tr>
+          </thead>
+          <tbody id="lb-body"></tbody>
+        </table>
+      </div>
+      <button class="btn" id="btn-lb-back">Back</button>
+    </div>
+  </div>
+
+  <!-- ================= SETTINGS ================= -->
+  <div class="screen" id="screen-settings">
+    <div class="panel">
+      <h2>Settings</h2>
+      <div class="panel-box">
+        <div class="settings-grid">
+          <div class="setting">
+            <label>Difficulty</label>
+            <select id="set-difficulty">
+              <option value="easy">Easy — sentences</option>
+              <option value="medium">Medium — paragraphs</option>
+              <option value="hard">Hard — code</option>
+            </select>
+          </div>
+          <div class="setting">
+            <label>Race Track</label>
+            <select id="set-theme">
+              <option value="neon">Neon City</option>
+              <option value="sunset">Sunset Desert</option>
+              <option value="midnight">Midnight Express</option>
+            </select>
+          </div>
+          <div class="setting">
+            <label>Car Skin</label>
+            <select id="set-skin">
+              <option value="cyan">Neon Cyan</option>
+              <option value="magenta">Magenta Storm</option>
+              <option value="toxic">Toxic Green</option>
+              <option value="sunset">Sunset Orange</option>
+              <option value="ice">Ice Blue</option>
+            </select>
+          </div>
+          <div class="setting">
+            <label>Rain</label>
+            <select id="set-rain">
+              <option value="auto">Auto</option>
+              <option value="on">On</option>
+              <option value="off">Off</option>
+            </select>
+          </div>
+          <div class="setting">
+            <label>Night Mode</label>
+            <select id="set-night">
+              <option value="auto">Auto</option>
+              <option value="on">On</option>
+              <option value="off">Off</option>
+            </select>
+          </div>
+          <div class="setting">
+            <label>Ghost Replay</label>
+            <select id="set-ghost">
+              <option value="on">On</option>
+              <option value="off">Off</option>
+            </select>
+          </div>
+          <div class="setting">
+            <label>Sound Effects</label>
+            <select id="set-sound">
+              <option value="on">On</option>
+              <option value="off">Off</option>
+            </select>
+          </div>
+          <div class="setting">
+            <label>Engine Sound</label>
+            <select id="set-engine">
+              <option value="on">On</option>
+              <option value="off">Off</option>
+            </select>
+          </div>
+          <div class="setting">
+            <label>Screen Shake</label>
+            <select id="set-shake">
+              <option value="on">On</option>
+              <option value="off">Off</option>
+            </select>
+          </div>
+          <div class="setting">
+            <label>Volume</label>
+            <input type="range" id="set-volume" min="0" max="100" />
+          </div>
+        </div>
+      </div>
+      <button class="btn" id="btn-settings-back">Back</button>
+    </div>
+  </div>
+
+  <!-- ================= ACHIEVEMENTS ================= -->
+  <div class="screen" id="screen-achievements">
+    <div class="panel">
+      <h2>Achievements</h2>
+      <div class="ach-stats" id="ach-stats"></div>
+      <div class="panel-box">
+        <div class="ach-grid" id="ach-grid"></div>
+      </div>
+      <button class="btn" id="btn-ach-back">Back</button>
+    </div>
+  </div>
+
+  <!-- scripts (order matters: no modules — works from file://) -->
+  <script src="js/config.js"></script>
+  <script src="js/texts.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/typing.js"></script>
+  <script src="js/car.js"></script>
+  <script src="js/track.js"></script>
+  <script src="js/hud.js"></script>
+  <script src="js/screens.js"></script>
+  <script src="js/multiplayer.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

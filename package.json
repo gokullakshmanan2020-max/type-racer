@@ -1,0 +1,12 @@
+{
+  "name": "type-racer-speed-rush",
+  "version": "1.0.0",
+  "description": "Type Racer - Speed Rush: neon typing race game with online multiplayer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
